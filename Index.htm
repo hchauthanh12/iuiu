@@ -1,0 +1,133 @@
+
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Journey</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial;background:#0b1736;color:#fff;overflow:hidden}
+#sky{position:fixed;inset:0}.star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:t 2s infinite alternate}@keyframes t{to{opacity:.2}}
+.page{display:none;position:absolute;inset:0;justify-content:center;align-items:center;flex-direction:column;padding:20px}
+.page.active{display:flex}.card{max-width:760px;background:rgba(255,255,255,.08);padding:24px;border-radius:20px}
+button{padding:10px 22px;border:none;border-radius:30px;background:#ff6b9e;color:#fff;cursor:pointer}
+#items{display:flex;gap:10px;flex-wrap:wrap;margin:15px 0}.item{font-size:42px;cursor:pointer}
+#game{width:700px;max-width:90vw;height:320px;background:rgba(255,255,255,.08);position:relative;overflow:hidden;border-radius:20px}
+#player{position:absolute;bottom:10px;font-size:42px;left:50%}.drop{position:absolute;font-size:30px}
+</style></head><body>
+<div id="sky"></div>
+
+<div id="p1" class="page active"><div class="card"><h2>Tớ có món quà nhỏ</h2><div id="typing"></div><br><button id="startBtn">Bắt đầu</button></div></div>
+
+<div id="p2" class="page"><div class="card"><h2>Chuẩn bị vali</h2><div id="items"></div><div id="hint"></div></div></div>
+
+<div id="p3" class="page"><h2>Hứng điều tốt đẹp</h2><div id="game"><div id="player">🧸</div></div><div id="score">0/10</div></div>
+
+<div id="p4" class="page"><div class="card"><h2>Gửi cậu</h2><div id="msg"></div></div></div>
+
+<script>
+const sky=document.getElementById('sky');
+const typing=document.getElementById('typing');
+const items=document.getElementById('items');
+const hint=document.getElementById('hint');
+const game=document.getElementById('game');
+const player=document.getElementById('player');
+const score=document.getElementById('score');
+const msg=document.getElementById('msg');
+const startBtn=document.getElementById('startBtn');
+
+for(let i=0;i<160;i++){
+ const s=document.createElement('div');
+ s.className='star';
+ s.style.left=Math.random()*100+'%';
+ s.style.top=Math.random()*100+'%';
+ sky.appendChild(s);
+}
+
+function show(id){
+ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+ document.getElementById(id).classList.add('active');
+}
+
+const intro=`Tớ có một món quà nho nhỏ
+
+Dạo gần đây cậu hơi mệt và dễ cáu một chút.
+
+Không sao đâu.
+
+Tớ không giỏi làm cậu hết mệt...
+
+Nhưng tớ hy vọng website nhỏ này sẽ khiến cậu mỉm cười.
+
+❤️`;
+let ti=0;
+(function type(){
+ if(ti<intro.length){
+   typing.innerHTML+=intro[ti]=="\n"?"<br>":intro[ti];
+   ti++; setTimeout(type,35);
+ }
+})();
+
+startBtn.onclick=()=>{show('p2');initBag();};
+
+const bag=[
+["💧","Nhớ uống nhiều nước nha."],
+["🧴","Nhớ bôi kem chống nắng."],
+["📱","Sạc đầy điện thoại nhé."],
+["🍫","Đừng bỏ bữa."],
+["❤️","Và đừng quên có tớ nhée."]
+];
+function initBag(){
+ items.innerHTML="";
+ let done=0;
+ bag.forEach(v=>{
+   const d=document.createElement('div');
+   d.className='item'; d.textContent=v[0];
+   d.onclick=()=>{
+      d.style.opacity=.3; d.onclick=null;
+      hint.textContent=v[1];
+      done++;
+      if(done===bag.length)setTimeout(()=>{show('p3');startGame();},800);
+   };
+   items.appendChild(d);
+ });
+}
+
+document.addEventListener('mousemove',e=>{
+ const r=game.getBoundingClientRect();
+ let x=e.clientX-r.left;
+ if(x<0)x=0;if(x>r.width-40)x=r.width-40;
+ player.style.left=x+'px';
+});
+
+let pts=0,spawn;
+function startGame(){pts=0;score.textContent='0/10';spawn=setInterval(drop,500);}
+function drop(){
+ const d=document.createElement('div');
+ d.className='drop';
+ d.textContent=Math.random()<0.8?'❤️':'😴';
+ d.style.left=Math.random()*(game.clientWidth-30)+'px';
+ game.appendChild(d);
+ let y=-20;
+ const fall=setInterval(()=>{
+   y+=4; d.style.top=y+'px';
+   const a=d.getBoundingClientRect(),b=player.getBoundingClientRect();
+   if(a.bottom>b.top&&a.left<b.right&&a.right>b.left){
+      pts+=d.textContent==='❤️'?1:-1;
+      if(pts<0)pts=0;
+      score.textContent=pts+'/10';
+      d.remove(); clearInterval(fall);
+      if(pts>=10){clearInterval(spawn);ending();}
+   }
+   if(y>game.clientHeight){d.remove();clearInterval(fall);}
+ },16);
+}
+function ending(){
+ show('p4');
+ const text=`Nếu hôm nay cậu chưa vui thì cũng không sao.\n\nĂn thật ngon.\nNgủ thật đủ.\nChụp thật nhiều ảnh đẹp gửi cho tớ.\n\nĐi chơi nhớ né mấy anh zai ra nha kẻo nó lừa.\nĐi chơi vui vẻ nhé iu iu. ❤️`;
+ let i=0;
+ (function w(){
+   if(i<text.length){
+     msg.innerHTML+=text[i]=="\n"?"<br>":text[i];
+     i++; setTimeout(w,35);
+   }
+ })();
+}
+</script></body></html>
